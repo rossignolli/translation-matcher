@@ -62,7 +62,7 @@ function App() {
 
         {activeTab === 'progress' && (
           <div className="h-[calc(100vh-10rem)]">
-            <ProgressDashboard />
+            <ProgressDashboard onComplete={() => setActiveTab('results')} />
           </div>
         )}
 

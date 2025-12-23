@@ -31,16 +31,26 @@ export class FileSystemService {
   }
 
   /**
-   * Reads an Excel manifest and returns rows
+   * Reads an Excel manifest and returns all sheets with their data and columns
    */
-  readManifest(filePath: string): any[] {
+  readManifest(filePath: string): { sheets: { name: string; columns: string[]; data: any[] }[] } {
     if (!fs.existsSync(filePath)) {
       throw new Error(`Excel file not found: ${filePath}`);
     }
     const workbook = xlsx.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    return xlsx.utils.sheet_to_json(sheet);
+    
+    const sheets = workbook.SheetNames.map(sheetName => {
+      const sheet = workbook.Sheets[sheetName];
+      const data = xlsx.utils.sheet_to_json(sheet);
+      const columns = data.length > 0 ? Object.keys(data[0] as object) : [];
+      return {
+        name: sheetName,
+        columns,
+        data
+      };
+    });
+    
+    return { sheets };
   }
 
   /**

@@ -30,6 +30,9 @@ export class OpenAIService {
   ): Promise<any> {
     if (!this.client) throw new Error('OpenAI client not initialized');
 
+    const startTime = Date.now();
+    console.log(`[OpenAI] Calling ${model} (prompt: ${userContent.length} chars)...`);
+
     try {
       const completion = await this.client.chat.completions.create({
         model,
@@ -40,12 +43,18 @@ export class OpenAIService {
         response_format: jsonMode ? { type: 'json_object' } : { type: 'text' }
       });
 
+      const elapsed = Date.now() - startTime;
       const content = completion.choices[0].message.content;
+      const usage = completion.usage;
+      
+      console.log(`[OpenAI] Response received in ${elapsed}ms (tokens: ${usage?.total_tokens || 'N/A'})`);
+      
       if (!content) throw new Error('Empty response from OpenAI');
 
       return jsonMode ? JSON.parse(content) : content;
-    } catch (error) {
-      console.error('GPT Generation Error:', error);
+    } catch (error: any) {
+      const elapsed = Date.now() - startTime;
+      console.error(`[OpenAI] Error after ${elapsed}ms:`, error.message);
       throw error;
     }
   }

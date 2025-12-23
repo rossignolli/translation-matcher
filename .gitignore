@@ -1,0 +1,18 @@
+# Ignore all folders except translation-matcher
+.directus-template-cli/
+data-extension/
+gameplay-catalog-monorepo/
+gaming-news-web/
+gaming-news/
+hello-directus-2/
+hello-directus/
+livepix-tts/
+livepixgta/
+rockpix/
+rockstar-final-deploy/
+scrapper-api/
+scrapper/
+
+# Inside translation-matcher
+translation-matcher/.env
+translation-matcher/data/uploads/

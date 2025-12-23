@@ -1,29 +1,35 @@
 import fs from 'fs';
-const pdfParse = require('pdf-parse');
+import { PDFParse } from 'pdf-parse';
 
 export class PdfService {
   /**
-   * Extracts text from a PDF file using pdf-parse.
+   * Extracts text from a PDF file using pdf-parse v2.
    * If text appears insufficient (scanned), OCR would be triggered here in a real implementation.
    */
   async extractText(filePath: string): Promise<{ text: string, pageCount: number, info?: any }> {
     const dataBuffer = await fs.promises.readFile(filePath);
     
+    const parser = new PDFParse({ data: dataBuffer });
+    
     try {
-      const data = await pdfParse(dataBuffer);
+      const textResult = await parser.getText();
+      const infoResult = await parser.getInfo();
       
       // Basic heuristic: if text length is very low compared to page count, it might be an image scan.
       // In a full implementation, we'd trigger OCR here.
-      if (data.text.trim().length < 50 && data.numpages > 0) {
+      if (textResult.text.trim().length < 50 && textResult.total > 0) {
         console.warn(`[PdfService] Warning: ${filePath} seems to have little text. OCR may be needed.`);
       }
 
+      await parser.destroy();
+
       return {
-        text: this.normalizeText(data.text),
-        pageCount: data.numpages,
-        info: data.info
+        text: this.normalizeText(textResult.text),
+        pageCount: textResult.total,
+        info: infoResult.info
       };
     } catch (error) {
+      await parser.destroy();
       console.error(`[PdfService] Error parsing PDF ${filePath}:`, error);
       throw error;
     }

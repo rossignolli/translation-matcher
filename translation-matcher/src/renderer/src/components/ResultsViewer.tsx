@@ -22,16 +22,17 @@ export default function ResultsViewer() {
 
     const exportCSV = async () => {
         if (matches.length === 0) return;
-        const header = ['Confidence', 'Type', 'Target (A)', 'Source (B)', 'Explanation', 'Citation'].join(',') + '\n';
+        const header = ['Confidence', 'Type', 'Portuguese Article', 'French Source', 'Match', 'Reason'].join(',') + '\n';
         const rows = matches.map(m => {
-            const citation = m.citation_json ? (JSON.parse(m.citation_json)).chicago_bibliography : '';
+            const evidence = m.evidence_json ? JSON.parse(m.evidence_json) : {};
+            const reason = m.reason || evidence?.verification?.reason || evidence?.explanation || '';
             return [
                 m.confidence,
-                m.match_type,
+                m.match_type || 'candidate',
                 `"${m.a_filename}"`,
                 `"${m.b_filename}"`,
-                `"${(JSON.parse(m.evidence_json || '{}')).explanation || ''}"`,
-                `"${citation}"`
+                `"${m.a_filename} matches ${m.b_filename}"`,
+                `"${reason.replace(/"/g, '""')}"`
             ].join(',');
         }).join('\n');
 
@@ -84,8 +85,9 @@ export default function ResultsViewer() {
                         <tr>
                             <th className="p-4 w-24">Score</th>
                             <th className="p-4 w-32">Type</th>
-                            <th className="p-4">Target (Portuguese)</th>
-                            <th className="p-4">Source (Original)</th>
+                            <th className="p-4">Portuguese Article</th>
+                            <th className="p-4 text-center">↔</th>
+                            <th className="p-4">French Source</th>
                             <th className="p-4 w-20 text-right">Details</th>
                         </tr>
                     </thead>
@@ -104,11 +106,19 @@ export default function ResultsViewer() {
                                 </td>
                                 <td className="p-4">
                                     <span className="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                                        {match.match_type.replace('_', ' ')}
+                                        {(match.match_type || 'candidate').replace('_', ' ')}
                                     </span>
                                 </td>
-                                <td className="p-4 font-medium text-slate-900">{match.a_filename}</td>
-                                <td className="p-4 text-slate-600">{match.b_filename}</td>
+                                <td className="p-4">
+                                    <div className="font-mono font-medium text-slate-900">{match.a_filename}</div>
+                                    {match.article_title && (
+                                        <div className="text-xs text-slate-500 mt-1 truncate max-w-xs" title={match.article_title}>
+                                            {match.article_title}
+                                        </div>
+                                    )}
+                                </td>
+                                <td className="p-4 text-center text-emerald-600 font-bold">matches</td>
+                                <td className="p-4 font-mono font-medium text-slate-900">{match.b_filename}</td>
                                 <td className="p-4 text-right">
                                     <details className="group/details relative">
                                         <summary className="list-none">
@@ -133,20 +143,30 @@ export default function ResultsViewer() {
                                                 <div className="p-6 overflow-y-auto space-y-6">
                                                     {/* Evidence Section */}
                                                     <div>
-                                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">GPT Reasoning</h4>
-                                                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm text-slate-700 leading-relaxed font-serif">
-                                                            {(JSON.parse(match.evidence_json || '{}')).explanation}
+                                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Match Reason</h4>
+                                                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm text-slate-700 leading-relaxed">
+                                                            {(() => {
+                                                                const evidence = match.evidence_json ? JSON.parse(match.evidence_json) : {};
+                                                                return match.reason || evidence?.verification?.reason || evidence?.explanation || 'No explanation available';
+                                                            })()}
                                                         </div>
                                                     </div>
 
-                                                    {/* Citation Section */}
-                                                    {match.citation_json && (
+                                                    {/* Confirmed Matching Snippets - Only snippets actually found in French text */}
+                                                    {match.evidence_json && JSON.parse(match.evidence_json)?.matching_snippets && JSON.parse(match.evidence_json).matching_snippets.length > 0 && (
                                                         <div>
-                                                            <h4 className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-3">Citation (Chicago)</h4>
-                                                            <div className="bg-amber-50 p-5 rounded-lg border border-amber-100">
-                                                                <p className="font-serif text-lg text-amber-900 italic">
-                                                                    {(JSON.parse(match.citation_json)).chicago_bibliography}
-                                                                </p>
+                                                            <h4 className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-3">Confirmed Matching Snippets</h4>
+                                                            <div className="space-y-2">
+                                                                {JSON.parse(match.evidence_json).matching_snippets.map((snippet: any, i: number) => (
+                                                                    <div key={i} className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-sm">
+                                                                        <div className="text-indigo-700"><strong>PT:</strong> {snippet.portuguese}</div>
+                                                                        <div className="text-indigo-600"><strong>FR (found):</strong> {snippet.french}</div>
+                                                                        <div className="text-indigo-400 text-xs mt-1">
+                                                                            Type: {snippet.anchor_type}
+                                                                            {snippet.location_in_french && ` • Location: ${snippet.location_in_french}`}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
                                                             </div>
                                                         </div>
                                                     )}

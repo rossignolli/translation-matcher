@@ -3,4 +3,24 @@ dist
 out
 .DS_Store
 .eslintcache
-*.log*
+*.log
+*.env
+.env
+
+# Uploads data
+data/uploads/
+
+# Other projects (should not be in this repo)
+../.directus-template-cli/
+../data-extension/
+../gameplay-catalog-monorepo/
+../gaming-news-web/
+../gaming-news/
+../hello-directus-2/
+../hello-directus/
+../livepix-tts/
+../livepixgta/
+../rockpix/
+../rockstar-final-deploy/
+../scrapper-api/
+../scrapper/

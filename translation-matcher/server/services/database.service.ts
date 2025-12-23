@@ -46,9 +46,7 @@ export class DatabaseService {
         reason TEXT,
         confidence REAL,
         gpt_response_json TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(doc_a_id) REFERENCES documents(id),
-        FOREIGN KEY(doc_b_id) REFERENCES documents(id)
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS matches (
@@ -59,9 +57,7 @@ export class DatabaseService {
         confidence REAL,
         evidence_json TEXT,
         citation_json TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(doc_a_id) REFERENCES documents(id),
-        FOREIGN KEY(doc_b_id) REFERENCES documents(id)
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
     `;
 

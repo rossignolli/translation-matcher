@@ -56,22 +56,24 @@ export const api = {
     return res.json();
   },
 
-  testAI: async (apiKey: string) => {
-    const res = await fetch('/api/ai/test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey })
-    });
-    const data = await res.json();
-    return data.success;
-  },
-
   startPipeline: async (config: any) => {
     const res = await fetch('/api/pipeline/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(config)
     });
+    return res.json();
+  },
+
+  stopPipeline: async () => {
+    const res = await fetch('/api/pipeline/stop', {
+      method: 'POST',
+    });
+    return res.json();
+  },
+
+  getPipelineStatus: async () => {
+    const res = await fetch('/api/pipeline/status');
     return res.json();
   },
 
